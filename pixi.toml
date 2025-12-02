@@ -1,0 +1,37 @@
+[workspace]
+authors = ["Hemanth Damineni <hemanthdamineni@gmail.com>"]
+channels = ["conda-forge", "pytorch"]
+name = "Sentiment Analysis"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+pipeline = "python backend/main.py"
+train = "python backend/main.py --train --use_huggingface"
+evaluate = "python backend/main.py --evaluate --use_huggingface"
+backend = "python -m uvicorn backend.app.main:app --reload --port 8000"
+frontend = "npm --prefix frontend run dev"
+ui = "python -m uvicorn backend.app.main:app --reload --port 8000 && npm --prefix frontend run dev"
+frontend_build = "npm --prefix frontend run build"
+
+[dependencies]
+python = ">=3.10,<3.12"
+fastapi = ">=0.123.0,<0.124"
+pytorch = ">=2.1"
+transformers = ">=4.45"
+datasets = ">=2.14,<3.0"
+scikit-learn = ">=1.4"
+pandas = ">=2.0"
+numpy = ">=1.26"
+matplotlib = ">=3.10.8,<4"
+seaborn = ">=0.13"
+tqdm = ">=4.66"
+streamlit = ">=1.51.0,<2"
+gradio = ">=5.49.1,<6"
+nltk = ">=3.9"
+wordcloud = ">=1.9"
+imbalanced-learn = ">=0.12"
+plotly = ">=5.23"
+cufflinks-py = ">=0.17"
+textblob = "<0.18"
+gensim = ">=4.3.3,<5"

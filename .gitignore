@@ -1,0 +1,20 @@
+# Models and data
+models/
+*.pt
+*.bin
+data/
+results/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Pixi environments
+.vscode/
+.pixi/*
+!.pixi/config.toml
+
+# Others
+node_modules/
+.backups/
+__pycache__/
+*.rar
