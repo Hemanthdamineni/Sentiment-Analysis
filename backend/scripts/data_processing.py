@@ -43,54 +43,35 @@ def load_data(file_path=None, use_huggingface=True, sample_size=None):
         t = re.sub(r"[^a-z\s]", " ", t)
         t = re.sub(r"\s+", " ", t).strip()
         return t
-    keywords = ["watch","smartwatch","fitbit","wearable","fitness band","smart watch","band","gear","amazfit","garmin","mi band","huawei watch"]
-    pattern = r"\b(?:" + "|".join([re.escape(k) for k in keywords]) + r")\b"
+    
     if use_huggingface:
-        cache_path = os.path.join("backend/dataset", "smartwatch_reviews.csv")
-        loaded_from_cache = False
-        if os.path.exists(cache_path):
-            df = pd.read_csv(cache_path)
-            loaded_from_cache = True
-        else:
-            from datasets import load_dataset
-            dataset = load_dataset("mteb/amazon_reviews_multi", "en")
-            parts = []
-            for split in ["train","validation","test"]:
-                if split in dataset:
-                    tmp = pd.DataFrame(dataset[split])
-                    tmp = tmp.rename(columns={"text":"text","label":"label"})
-                    parts.append(tmp)
-            df = pd.concat(parts, axis=0, ignore_index=True)
-            df1 = df[df['text'].astype(str).str.contains(pattern, case=False, regex=True)]
-            if len(df1) < 100:
-                loose = "|".join([re.escape(k) for k in keywords])
-                df1 = df[df['text'].astype(str).str.contains(loose, case=False, regex=True)]
-            df = df1
+        from datasets import load_dataset
+        print("\nData source: huggingface dataset")
+        dataset = load_dataset("mteb/amazon_reviews_multi", "en")
+        
+        # We can just use the provided train and test splits gracefully
+        train_df = pd.DataFrame(dataset['train']).rename(columns={"text":"text", "label":"label"})
+        test_df = pd.DataFrame(dataset['test']).rename(columns={"text":"text", "label":"label"})
+
+        # Clean text and assign sentiment
+        for df in [train_df, test_df]:
             df['text'] = df['text'].apply(_clean_text)
-            df = df[df['text'].str.len() > 0]
+            df.dropna(subset=['text'], inplace=True)
+            df.drop(df[df['text'].str.len() == 0].index, inplace=True)
             df['sentiment'] = df['label'].apply(lambda x: 0 if x <= 1 else (1 if x == 2 else 2))
-            os.makedirs("backend/dataset", exist_ok=True)
-            df[['text','sentiment']].to_csv(cache_path, index=False)
-        if loaded_from_cache:
-            print(f"\nData source: local cache {cache_path}")
-        else:
-            print("\nData source: huggingface dataset")
-        if len(df) == 0:
-            raise ValueError("No smartwatch reviews found after filtering; try adjusting keywords or source dataset.")
-        train_df, test_df = train_test_split(df[['text','sentiment']], test_size=0.2, random_state=42, stratify=df['sentiment'])
+
         if sample_size:
             train_df = train_df.sample(min(sample_size, len(train_df)), random_state=42)
             test_df = test_df.sample(min(max(1, sample_size//5), len(test_df)), random_state=42)
-        print(f"\nTotal filtered: {len(df)}, Train: {len(train_df)}, Test: {len(test_df)}, Sample size: {sample_size}")
-        train_counts = train_df['sentiment'].value_counts().to_dict()
-        test_counts = test_df['sentiment'].value_counts().to_dict()
-        print(f"Class distribution train={train_counts}, test={test_counts}")
+
+        print(f"\nFiltered Train: {len(train_df)}, Test: {len(test_df)}, Sample size: {sample_size}")
+        print(f"Class distribution train={train_df['sentiment'].value_counts().to_dict()}, test={test_df['sentiment'].value_counts().to_dict()}")
         return train_df[['text','sentiment']], test_df[['text','sentiment']]
     else:
         if file_path is None:
             raise ValueError("File path must be provided when use_huggingface is False")
         df = pd.read_csv(file_path)
-        df = df[df['text'].astype(str).str.contains(pattern, case=False, regex=True)]
+        
         df['text'] = df['text'].apply(_clean_text)
         df = df[df['text'].str.len() > 0]
         df['sentiment'] = df['rating'].apply(lambda x: 0 if int(x) <= 2 else (1 if int(x) == 3 else 2))
@@ -111,7 +92,8 @@ def create_data_loaders(train_df, test_df, tokenizer, batch_size=16, max_length=
         import numpy as np, torch
         labels = train_df['sentiment'].to_numpy()
         uniq, counts = np.unique(labels, return_counts=True)
-        class_weight = {c: round((len(labels) / (counts[i] * len(uniq))),3) for i, c in enumerate(uniq)}
+        uniq, counts = uniq.astype(int), counts.astype(int)
+        class_weight = {c: (len(labels) / (counts[i] * len(uniq))) for i, c in enumerate(uniq)}
         sample_weights = torch.DoubleTensor([class_weight[int(y)] for y in labels])
         sampler = WeightedRandomSampler(sample_weights, num_samples=len(sample_weights), replacement=True)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler, shuffle=False, num_workers=2)
