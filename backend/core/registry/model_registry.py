@@ -52,9 +52,9 @@ class ModelRegistry:
         
         model = self._models[name]
         if not model.is_loaded:
-            model_path = os.path.join(config.models_dir, name)
-            if not os.path.exists(model_path):
-                model_path = config.models_dir  # Fallback to base dir
+            # Prefer explicit path stored in metadata, fall back to convention
+            metadata = self._metadata.get(name, {})
+            model_path = metadata.get("model_path") or os.path.join(config.models_dir, name)
             model.load(model_path)
             logger.info(f"Loaded model: {name}")
         
