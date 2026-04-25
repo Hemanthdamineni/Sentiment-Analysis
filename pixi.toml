@@ -45,6 +45,9 @@ textblob = "*"
 tqdm = "*"
 pip = "*"
 python-dotenv = "*"
+wordcloud = "*"
+imbalanced-learn = "*"
+python-multipart = "*"
 
 # Testing
 pytest = "*"
