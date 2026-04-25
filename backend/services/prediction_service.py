@@ -20,7 +20,7 @@ class PredictionService:
     def __init__(self):
         # Don't initialize models at import time
         self._batch_queue = defaultdict(list)  # model_name -> list of (timestamp, text, future)
-        self._batch_lock = asyncio.Lock()
+        self._batch_lock = None # Initialize lazily to avoid event loop issues
         self._batch_size = config.inference_batch_size
         self._batch_window_ms = config.batch_window_ms
         self._batch_processor_task = None
@@ -116,6 +116,9 @@ class PredictionService:
             future = asyncio.Future()
 
             # Add to batch queue
+            if self._batch_lock is None:
+                self._batch_lock = asyncio.Lock()
+                
             async with self._batch_lock:
                 if self._shutdown:
                     raise RuntimeError("Service is shutting down")
@@ -205,6 +208,9 @@ class PredictionService:
         while True:
             try:
                 await asyncio.sleep(self._batch_window_ms / 1000.0)
+
+                if self._batch_lock is None:
+                    self._batch_lock = asyncio.Lock()
 
                 async with self._batch_lock:
                     # Check if any batches need processing
