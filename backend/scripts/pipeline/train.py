@@ -12,7 +12,13 @@ import json
 def run_train(use_huggingface=True, sample_size=100, output_dir="backend/models/sentiment", epochs=1, batch_size=16, max_length=128, learning_rate=2e-5, weight_decay=0.0, use_class_weights=False, file_path=None, warmup_ratio=0.1, dropout=0.4, gradient_accumulation_steps=1, use_weighted_sampler=False, eval_interval=None, eval_max_batches=1):
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(os.path.join(output_dir, "results"), exist_ok=True)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    try:
+        import torch_directml
+        _dml = torch_directml.device()
+    except Exception:
+        _dml = None
+    device = torch.device('cuda') if torch.cuda.is_available() else (_dml if _dml is not None else torch.device('cpu'))
+    print(f"Using device: {device}")
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
     train_df, test_df = load_data(file_path=file_path, use_huggingface=use_huggingface, sample_size=sample_size)
     train_loader, val_loader, _ = create_data_loaders(train_df, test_df, tokenizer, batch_size=batch_size, max_length=max_length, use_weighted_sampler=use_weighted_sampler)
@@ -36,7 +42,7 @@ def run_train(use_huggingface=True, sample_size=100, output_dir="backend/models/
         total = sum(counts.values())
         weights = [total / (counts.get(i, 1) * len(counts)) for i in range(3)]
         class_weights = torch.tensor(weights, dtype=torch.float32).to(device)
-        loss_fn = nn.CrossEntropyLoss(weight=class_weights)
+        loss_fn = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
         # print(f"Using class weights: {weights}")
 
     print("="*50, "\nTRAINING TRANSFORMER\n", "="*50)

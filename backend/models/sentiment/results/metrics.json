@@ -1,0 +1,64 @@
+{
+    "test_loss": 0.7496390068531036,
+    "test_accuracy": 0.7016861219195849,
+    "classification_report": {
+        "Negative": {
+            "precision": 0.7483443708609272,
+            "recall": 0.7713310580204779,
+            "f1-score": 0.7596638655462185,
+            "support": 293.0
+        },
+        "Neutral": {
+            "precision": 0.36075949367088606,
+            "recall": 0.35625,
+            "f1-score": 0.3584905660377358,
+            "support": 160.0
+        },
+        "Positive": {
+            "precision": 0.8295819935691319,
+            "recall": 0.8113207547169812,
+            "f1-score": 0.8203497615262321,
+            "support": 318.0
+        },
+        "accuracy": 0.7016861219195849,
+        "macro avg": {
+            "precision": 0.6462286193669816,
+            "recall": 0.6463006042458197,
+            "f1-score": 0.6461680643700621,
+            "support": 771.0
+        },
+        "weighted avg": {
+            "precision": 0.7014182796427723,
+            "recall": 0.7016861219195849,
+            "f1-score": 0.7014412805919864,
+            "support": 771.0
+        }
+    },
+    "misclassified_examples": [
+        {
+            "text": "size was too small extra shipping cost wasted it was much smaller than i expected i have many invicta watches same style and this one size is a disappointing other than that its a very good watch pops pretty well for being a normal size watch ps don t pay for day shipping took days to arrive wasted about bucks",
+            "predicted": "Negative",
+            "actual": "Neutral"
+        },
+        {
+            "text": "irritates my skin looks nice but leaves a rash around my wrist i have found one other cheap band that does this to me",
+            "predicted": "Negative",
+            "actual": "Neutral"
+        },
+        {
+            "text": "works good but i do not like the way you works good but i do not like the way you have to charge it when pulling off the band to charge it would be easy to break the usb connector would be eaiser if it used a mini usb",
+            "predicted": "Negative",
+            "actual": "Neutral"
+        },
+        {
+            "text": "wearable i like but wasnt my style",
+            "predicted": "Positive",
+            "actual": "Negative"
+        },
+        {
+            "text": "very difficult to set time date doesn t work very very difficult to set time date doesn t work very well band was huge with no instructions as how to shorten it",
+            "predicted": "Negative",
+            "actual": "Neutral"
+        }
+    ]
+}

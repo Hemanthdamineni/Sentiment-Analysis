@@ -1,4 +1,6 @@
 import os
+import warnings
+warnings.filterwarnings("ignore", message=r"Found Intel OpenMP.*", category=RuntimeWarning)
 import pickle
 import numpy as np
 from collections import Counter
@@ -12,7 +14,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc_auc_score
-import warnings
 from sklearn.decomposition import TruncatedSVD
 from imblearn.over_sampling import SMOTE
 from tqdm import tqdm
@@ -32,7 +33,6 @@ def get_algorithms():
     }
 
 def train_all_classical_models(train_df, output_dir):
-    warnings.filterwarnings("ignore", message=r"Found Intel OpenMP.*", category=RuntimeWarning)
     os.makedirs(output_dir, exist_ok=True)
     X = train_df['text'].values; y = train_df['sentiment'].values
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.15, random_state=RANDOM_STATE, stratify=y)
