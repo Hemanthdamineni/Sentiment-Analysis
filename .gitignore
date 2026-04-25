@@ -1,20 +1,52 @@
-# Models and data
-models/
-*.pt
-*.bin
-data/
-results/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Pixi environments
+# Environments and Local Configuration
+.env
+.env.*
+!.env.example
 .vscode/
+
+# Python Defaults
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Package managers
+node_modules/
 .pixi/*
 !.pixi/config.toml
 
+# Datasets & Models
+backend/dataset/*.csv
+backend/models/sentiment/*.pt
+backend/models/sentiment/*.bin
+backend/models/sentiment/*.json
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+
 # Others
-node_modules/
 .backups/
-__pycache__/
 *.rar
+.DS_Store
