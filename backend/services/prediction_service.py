@@ -51,19 +51,22 @@ class PredictionService:
         transformer_model = TransformerModel()
         registry.register("transformer", transformer_model, {
             "description": "DistilBERT transformer model",
-            "class_names": ["Negative", "Neutral", "Positive"]
+            "class_names": ["Negative", "Neutral", "Positive"],
+            "model_type": "transformer",
+            "model_path": config.models_dir,  # Transformer files live in the base sentiment dir
         })
 
-        # Register classical models
         classical_dir = os.path.join(config.models_dir, "classical")
         if os.path.exists(classical_dir):
-            for filename in os.listdir(classical_dir):
+            for filename in sorted(os.listdir(classical_dir)):
                 if filename.endswith('.pkl'):
-                    algorithm_name = filename[:-4]  # Remove .pkl extension
+                    algorithm_name = filename[:-4]
                     classical_model = ClassicalModel(algorithm_name)
                     registry.register(algorithm_name, classical_model, {
                         "description": f"Classical ML algorithm: {algorithm_name}",
-                        "algorithm": algorithm_name
+                        "algorithm": algorithm_name,
+                        "model_type": "classical",
+                        "model_path": classical_dir,
                     })
 
         # Preload models with bounded cache
@@ -318,15 +321,14 @@ class PredictionService:
         logger.info("Prediction service shutdown complete")
     
     def list_available_models(self) -> Dict[str, List[str]]:
-        """List all available models by type"""
-        models = registry.list_models()
+        """List all available models by type — reads metadata, never triggers loading"""
         classical_models = []
-        
-        for model_name in models:
-            model = registry.get_model(model_name)
-            if model.model_type == "classical":
+
+        for model_name in registry.list_models():
+            meta = registry.get_metadata(model_name)
+            if meta.get("model_type") == "classical":
                 classical_models.append(model_name)
-        
+
         return {
             "classical_algorithms": sorted(classical_models)
         }
